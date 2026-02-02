@@ -31,7 +31,7 @@ export default {
     async created() {
         console.log(`front end id decoded from url is ${this.$route.params.id}`)
         const response = await axios.get(`/api/products/${this.$route.params.id}`);
-        console.log(`product returned ${JSON.stringify(response)}`)
+        console.log(`response returned ${JSON.stringify(response)}`)
         const product = response.data;
         this.product = product;
     }

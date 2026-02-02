@@ -6,7 +6,7 @@ import 'dotenv/config';
 async function start() { 
 
     let configDirname;
-    if( process.env.NODE_ENV == 'dev' ) {
+    if( process.env.NODE_ENV === 'dev' ) {
         configDirname = await import('../../config/config.js');
         console.log(`dirname  is ${JSON.stringify(configDirname)}`)
     }
