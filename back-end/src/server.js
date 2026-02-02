@@ -5,15 +5,18 @@ import 'dotenv/config';
 
 async function start() { 
 
+/*
     let configDirname;
     if( process.env.NODE_ENV === 'dev' ) {
         configDirname = await import('../../config/config.js');
         console.log(`dirname  is ${JSON.stringify(configDirname)}`)
     }
+*/
 
-    const username = process.env.MONGODB_GLOBAL_USER || MONGODB_GLOBAL_USER ;
-    const pswd = process.env.MONGODB_GLOBAL_PSWD  || MONGODB_GLOBAL_PSWD;
-    const __dirname =  process.env.NODE_ENV === 'dev' ? configDirname.default.name : process.env.NODE_DIRNAME;
+    const username = process.env.MONGODB_GLOBAL_USER; // || MONGODB_GLOBAL_USER ;
+    const pswd = process.env.MONGODB_GLOBAL_PSWD; //  || MONGODB_GLOBAL_PSWD;
+    //const __dirname =  process.env.NODE_ENV === 'dev' ? configDirname.default.name : process.env.NODE_DIRNAME;
+    const __dirname =  process.env.NODE_DIRNAME;
     const url = `mongodb+srv://${username}:${pswd}@cluster0.htvwoee.mongodb.net/?appName=Cluster0`;
     const client = new MongoClient(url);
     await client.connect();
