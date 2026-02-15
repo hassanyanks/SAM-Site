@@ -1,0 +1,305 @@
+.logo-container {
+  position: relative;
+  height: 200px;
+}
+
+body {
+  margin: 10px auto;
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Arial;
+}
+
+.page-wrap {
+  margin: auto;
+  max-width: 800px;
+  min-height: 100vh;
+}
+
+button {
+  background-color: black;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  outline: 0;
+  padding: 16px;
+}
+
+h1 {
+  border-bottom: 1px solid black;
+  margin: 0;
+  margin-top: 16px;
+  padding: 16px;
+}
+
+img {
+  display: block;
+}
+
+.total-price {
+  padding: 16px;
+  text-align: right;
+}
+
+.checkout-button {
+  width: 100%;
+}
+
+.details-wrap {
+  padding: 0 16px;
+  flex: 3;
+  display: inline-block;
+}
+
+.add-to-cart {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.sign-in {
+  display: block;
+  width: 100%;
+  margin: 10px;
+}
+
+.price {
+  position: absolute;
+  top: 24px;
+  right: 16px;
+}
+
+.green-button {
+  background-color: green;
+}
+
+.grey-button {
+  background-color: #888;
+  width: 100%;
+}
+
+/*
+.bottom-border {
+  border-bottom: #888;
+  border-bottom-width: medium;
+  border-me
+ ;
+}
+
+.flex-col {
+  display: inline-flex;
+  flex-direction: column;
+  width: 100%;
+}
+*/
+
+.icon-grid-container {
+  display: inline-grid;
+  width: 90%;
+  height: 125px;
+  grid-template-columns: 175px 1fr
+}
+
+.navbar-grid {
+  display: inline-grid;
+  width: 90%;
+  place-items: center;
+  grid-template-columns: 175px repeat(2, 1fr) 150px 150px;
+  gap: 20px;
+}
+
+.home-link {
+  text-align: center;
+  display: block;
+  color: black;
+  font-size: 22px;
+  left: 32px;
+  position: absolute;
+  top: 16px;
+  text-decoration: none;
+}
+
+/*
+.nav-buttons-wrap {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+*/
+
+.navbar-button {
+  margin: 5px 5px 5px 5px;
+}
+
+.cart-link {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+.prompt {
+	max-width: 75%;
+  justify-self: center;
+	border: 1px solid #e6e6e6;
+	border-radius: 8px;
+}
+
+/*
+form {
+	border-radius: 8px;
+  border: 1px solid #e6e6e6;  
+}
+*/
+
+.login-container {
+  width: 25%;
+  justify-self: center;
+  margin: 10px;
+  padding: 10px;
+	border-radius: 8px;
+  border: 1px solid #e6e6e6;  
+}
+
+section span {
+  margin: 0px 3px 0px 0px;
+  font-size: 20px;
+}
+
+.text-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  margin: 5px;
+  font-size: 20px;
+  border: 1px solid #ddd;
+}
+
+.login-wrap {
+	border: 1px solid #e6e6e6;
+  font-size: 20px;
+  display: grid;
+  flex-wrap: wrap;
+  margin: 20px;
+}
+
+.login-wrap form {
+  justify-self: center;
+  width: 50%;
+}
+
+.login-wrap input {
+  font-size: 20px;
+}
+
+.grid-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.product-sample {
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0px 2px 5px #888;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2%;
+  padding: 20px;
+  position: relative;
+}
+
+.product-sample button {
+  width: 100%;
+}
+/*
+
+.product-sample img {
+  width: 80%;
+  height: 40%;
+}
+
+.products-link {
+  text-align: center;
+  display: block;
+  color: black;
+  font-size: 22px;
+  left: 32px;
+  position: absolute;
+  top: 16px;
+  text-decoration: none;
+}
+
+.products-link h1 {
+  margin: 0;
+}
+
+.product-details {
+  padding: 16px;
+  position: relative;
+}
+
+.product-containerDEPRECATED {
+  align-content: 'center';
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  padding: 16px;
+  width: 100%;
+}
+
+.product-detail {
+  align-items: center;
+  border-radius: 8px;
+  box-shadow: 0px 2px 5px #888;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2%;
+  padding: 20px;
+  position: relative;
+  width: 50%;
+}
+
+.product-name {
+  margin-bottom: 0;
+}
+*/
+/*
+.product-detail img {
+  height: 200px;
+  width: 200px;
+}
+
+.product-item a {
+  width: 100%;
+}
+
+
+.product-item button {
+  width: 100%;
+}
+
+.product-image {
+  flex: 1;
+  height: 100px;
+  max-width: 100px;
+}
+*/
+
+.details-wrap {
+  padding: 0 16px;
+  flex: 3;
+}
+
+

@@ -1,0 +1,9 @@
+extends index
+
+block append content
+
+    div.grid-wrap
+        div(style="width:50%; height=50%").product-sample
+            h1 #[strong #{product.name}]
+            img(style="margin:15px; width:40%;", src="/images/" + product.image)
+            h2 #[strong Price $#{product.price} + cost of shoes]

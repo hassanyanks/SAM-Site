@@ -1,0 +1,18 @@
+extends layout
+
+block content 
+  div.navbar-grid 
+    span(style="font-size:20px; font-weight:bold;") Sam's Designs
+    span
+    span
+    button Go to Cart
+    if user
+      form(action="/logout" method="POST")
+        button(type="submit") Log out
+    else 
+      button(onclick="location.href='/login'") Log in
+  div.icon-grid-container 
+    div
+      a(href='/products'): img(src="/images/sams_logo.png", alt="Sam's Logo", width='175', height='125', style="margin-right:0")
+    div
+      hr(style="color:grey; margin-left: -20px; margin-top:62px;")
