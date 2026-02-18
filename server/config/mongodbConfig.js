@@ -6,6 +6,12 @@ export async function initMongoDB() {
     const db = 'sams-shoes'; 
     const url = `mongodb+srv://${username}:${pswd}@cluster0.htvwoee.mongodb.net/${db}?appName=Cluster0`;
     await mongoose.connect(url)
-    .then(mongoose.connection.on('connected', () => { console.log('Connected to db') }));
+    .then(() => {
+        console.log('successfully connected to db');
+    })
+    .catch(err => {
+        console.error(`error connecting to db:  ${err}`);
+    })
+    mongoose.connection.on('disconnected', () => { console.log('db disconnected') });
 }
 

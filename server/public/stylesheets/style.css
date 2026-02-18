@@ -175,6 +175,19 @@ section span {
   font-size: 20px;
 }
 
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+#togglePassword {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
 .text-input {
   width: 100%;
   box-sizing: border-box;

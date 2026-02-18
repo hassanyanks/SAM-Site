@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import passportLocalMongoose from 'passport-local-mongoose';
 import bcrypt from 'bcrypt';
-import {SALT_ROUNDS} from '../config/config.js';
+//import {SALT_ROUNDS} from '../config/config.js';
+import dotenv from 'dotenv';
+dotenv.config({ path: './.env' }); 
 
 const UserSchema = new mongoose.Schema({
     // For passport-local
@@ -18,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     //const saltRounds = 10;
     if(!this.isModified('password')) return err;
     try {
-        const salt = await bcrypt.genSalt(SALT_ROUNDS);
+        const salt = await bcrypt.genSalt(process.env.SALT_ROUNDS);
         this.password = bcrypt.hash(this.password, salt);
     } catch(err) {
         console.error(err);

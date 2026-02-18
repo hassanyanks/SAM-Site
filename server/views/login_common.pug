@@ -5,24 +5,17 @@ block content
     section.login-container
         form(action=url method="post")
             input.text-input(placeholder="Email" name="email" type="text" required autofocus)
-            input.text-input(placeholder="Password" name="password" type=text required autofocus)
+            section.password-container
+                input.text-input#password-fld(placeholder="Password" name="password" type="password" required autofocus)
+                span#togglePassword Show
             button.text-input(type="submit") Submit
-//-
 
-    hr(style="width: 25%")
-    section.login-container
-        span Don't have an account?
-        a(href="/signup", style="font-size: 20px;") Sign up
-
-
-        form.login-wrap(action="/login", method="post")
-            section.login-wrap
-                label(for="email") Email 
-                input(name="email", style="height:50px", type="text" required autofocus)
-            section.login-wrap
-                label(for="password") Password
-                input(name="password", style="height:50px; pattern='.+[@].+'", type="text" required autofocus)
-            button(style="width:100%", type="submit") Log in
-        hr
-        p(class="help") Don't have an account? 
-            a(href="/signup") Sign up
+    script. 
+        var displayToggle = document.querySelector('span#togglePassword');
+        var pswd = document.querySelector('input.text-input#password-fld');
+        document.addEventListener('click', function() {
+        const type = pswd.getAttribute('type') === 'password' ? 'text' : 'password';
+        const text = displayToggle.innerText === 'Show' ? 'Hide' : 'Show';
+        pswd.setAttribute('type', type);
+        displayToggle.innerText = text;
+        });    
