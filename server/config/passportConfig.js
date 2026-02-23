@@ -1,11 +1,11 @@
 import User from '../models/user.js';
 import passport from 'passport';
 import bcrypt from 'bcrypt';
-import session from 'express-session';
+//import session from 'express-session';
 
 const { Strategy: LocalStrategy } = await import('passport-local');
 
-export default function initPassport() {
+export default function (passportConfig) {
 
     // configure passport.js to use the local strategy
     passport.use(new LocalStrategy(
@@ -46,6 +46,4 @@ export default function initPassport() {
             done(null, user);
         });
     });
-
-    return passport;
 }

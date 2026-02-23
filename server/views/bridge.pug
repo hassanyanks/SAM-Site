@@ -1,0 +1,20 @@
+doctype html
+html
+    head
+        //-meta(http-equiv="Content-Security-Policy; refresh" content="form-action 'self';script-src 'self' 'unsafe-inline'; connect-src 'self';url=${req.query.targetUrl};")
+        style. 
+            body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+            .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; 
+                        border-radius: 50%; width: 50px; height: 50px; 
+                        animation: spin 2s linear infinite; margin: auto; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    body
+        - var url = `/${targetUrl}?success_msg=${success_msg}?error_msg=${error_msg}`;
+        title Redirecting...
+        div.loader
+        h1 Please wait while we redirect you...
+        p 
+            | If you are not redirected within 3 seconds: 
+            a(href=url) click here.
+        //-script(src="redirectTimeout.js")  
+            //-setTimeout(() => { window.location.href = "/uploaded"; }, 500);

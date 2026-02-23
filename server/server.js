@@ -4,7 +4,7 @@ import path from 'path';
 import app from './app.js'
 import { initMongoDB } from './config/mongodbConfig.js';
 
-const PORT = 3000;
+const PORT = 443;
 const __dirname = import.meta.dirname;
 
 process.on('uncaughtException', (err) => {
@@ -14,13 +14,16 @@ process.on('uncaughtException', (err) => {
 async function startHttpsServer() {
   try {
     const options = {
-      key: readFileSync(path.join(__dirname, 'mywebsite.key')),
-      cert: readFileSync(path.join(__dirname, 'mywebsite.crt')),
+      key: readFileSync(path.join(__dirname, 'samsKey.key')),
+      cert: readFileSync(path.join(__dirname, 'samsCertificate.crt')),
       rejectUnauthorized: false,
     };
     const https = await import ('node:https');
-    https.createServer(options, app).listen(PORT, () => { console.log(`server listening on port ${PORT}`); });
-
+    console.log('starting server...')
+    https.createServer(options, app, (req, res) => {
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self';");
+      res.writeHead(200);
+    }).listen(PORT, () => { console.log(`server listening on port ${PORT}`); });
   } catch(err) {
     console.error(`HTTPS is disabled!!:  ${err}`);
   }

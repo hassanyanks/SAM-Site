@@ -10,7 +10,7 @@ const ProductSampleSchema = new Schema({
   image: { type: String, required: true, minLength:  5, maxLength: 100 }
 });
 
-// Virtual for product type URL
+// Virtual for product sample URL
 ProductSampleSchema.virtual("url").get(function () {
   // We don't use an arrow function as we'll need the this object
   return `/productsample/${this._id}`;

@@ -1,0 +1,9 @@
+extends common_layout 
+
+block content 
+
+    div(style="align-self:center;")
+        form(action="/upload" method="POST" enctype="multipart/form-data")
+            input.upload-form-item(type="file" name="document" id="fileInput")
+            button.upload-form-item(type="submit") Upload
+            button.upload-form-item(type="reset" style="color:black; background-color:white;") Cancel

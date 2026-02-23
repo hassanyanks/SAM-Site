@@ -1,50 +1,33 @@
 import express from 'express';
 import User from '../models/user.js';
-import { v4 as uuid } from 'uuid';
-import session from 'express-session';
-import FileStoreFactory from 'session-file-store';
 import path from 'path';
-import fs from 'fs';
 import passport from 'passport';
-//import {SALT_ROUNDS} from '../config/config.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import { home, login, signup } from '../controllers/authControllers.js';
 import { product_samples } from '../controllers/productsController.js';
 import { product_details } from '../controllers/productDetailController.js';
 import { generateHashedToken, sendEmailWithToken, updateUserWithToken } from '../lib/credentials.js';
-//import { ModifiedPathsSnapshot } from 'mongoose';
-
 
 const __dirname = import.meta.dirname
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+console.log('starting auth routes init...');
 const { Strategy: LocalStrategy } = await import('passport-local');
 
 var router = express.Router();
 router.use(express.urlencoded({ extended: true }));
 router.use(express.json()); 
 
-//router.use(express.static(path.join(__dirname, 'images')));
-//router.use(express.static(path.join(__dirname, 'public')));
-//router.use(express.static(path.join(__dirname, 'views')));
-
-/*
-router.use(function(req, res, next) {
-    file_store.length(function(err, len) {
-        if (err) {
-            console.error("Error getting session length:", err);
-            return next(err);
-        }
-        console.log("Total active session count is " + len);
-        console.log("============");
-    });
-    return next();
+router.use((req, res, next) => {
+    if( req.isAuthenticated() ) {
+        res.locals.user = req.user; 
+        console.log(`*************************************router:  res.locals.user now is ${res.locals.user}*********************************************`)
+    } else {
+        res.locals.user = null;
+    }
+  next();
 });
-*/
-
-router.use(passport.initialize());
-router.use(passport.session());
 
 passport.use(new LocalStrategy({
     usernameField: 'email'
@@ -89,12 +72,6 @@ console.log(`The user id passport saved in the session file store is: ${id}`)
     });
 });
 
-router.use((req, res, next) => {
-  // Assuming 'req.user' is set by an authentication middleware like Passport.js
-  res.locals.user = req.user || null; 
-  next();
-});
-
 router.get('/signup', signup );
 
 router.post('/signup', async (req, res, next) => {
@@ -107,7 +84,6 @@ router.post('/signup', async (req, res, next) => {
         const userPassword = req.body.password;
 
         // Ensure SALT_ROUNDS is defined globally or imported
-        console.log(`*************************pswd is ${userPassword}, salt rounds is ${process.env.SALT_ROUNDS}`)
         const hash = await bcrypt.hash(userPassword, Number(process.env.SALT_ROUNDS));
 
         if (!hash) {
@@ -123,9 +99,9 @@ router.post('/signup', async (req, res, next) => {
         
         req.logIn(newUser, async function(err) {
             if (err) { return next(err); }
-            req.user = newUser;
+            //res.locals.user, req.user = newUser;
             console.log(`Authentication successful, current user is ${newUser}, redirecting to /products`);
-            return res.redirect(302, '/?user=' + req.user);
+            return res.redirect(302, '/');
             //return res.redirect('/products');
         });
 
@@ -133,16 +109,12 @@ router.post('/signup', async (req, res, next) => {
         console.error(`Error registering user: ${err}`);
         // If the error is a duplicate key (e.g., email already exists), send a specific error
         if (err.code === 11000) {
-            return res.status(400).json({ message: 'Email already in use.' });
+            return res.status(400).send( '<h2>Email already in use--try \'Forgot password?\' on login page.</h2>' );
         }
         // Pass other errors to the general error handler
         next(err);
     }
 });
-
-//router.get('/login', login, ensureAuthenticated, (res, req) => {
-
-//} );
 
 router.post('/login', (req, res, next) => {
     console.log(`email ${req.body.email}, pswd ${req.body.password}`)
@@ -157,11 +129,12 @@ router.post('/login', (req, res, next) => {
             console.log("Authentication failed:", info.message); 
             return res.status(401).send('<h2>Authentication seems to have failed.  Please click the browser back button and try again.</h2>');
         }
+        //res.locals.user = req.user;
         req.logIn(user, function(err) {
             if (err) { return next(err); }
-            req.user = user;
-            console.log(`************************************************/login Authentication successful, user is ${req.user}, redirecting`);
-            return res.redirect(302, '/?user=' + req.user);
+            //req.user = user;
+            console.log(`/login Authentication successful, user is ${req.user}, redirecting`);
+            return res.redirect(302, '/');
         });
     })(req, res, next); // Crucial: You must call the returned function
 });
@@ -232,7 +205,7 @@ router.post('/logout',  async (req, res, next) => {
     try {
         await new Promise((resolve, reject) => {
             req.logout((err) => {
-                console.log('*******************************inside req.logout() now***************************************');
+                console.log('inside req.logout() now');
                 if(err) { 
                     reject(err);
                 } else {
@@ -246,7 +219,7 @@ router.post('/logout',  async (req, res, next) => {
                 return res.status(500).send('Could not log out, please try again.');
             }
             // Successfully destroyed the session
-            console.log(`*******************************session destroyed, user now is ${req.user}....redirecting now***************************************`);
+            console.log(`session destroyed, user now is ${req.user}....redirecting now`);
             res.clearCookie('connect.sid');
             res.redirect(303, '/');
             // Or if you need to send a message:
@@ -256,21 +229,5 @@ router.post('/logout',  async (req, res, next) => {
         return next(err);
     }
 });
-
-function clearSessions() {
-    console.log('Deleting persistent sessions...');
-    if (fs.existsSync(sessionDir)) {
-        fs.rmSync(sessionDir, { recursive: true, force: true });
-        console.log('Sessions deleted.');
-    } else {
-        console.log('Sessions directory not found, no cleanup needed.');
-    }
-    if (!fs.existsSync(sessionDir)) {
-        fs.mkdirSync(sessionDir, { recursive: true }); // recursive: true creates parent directories if they don't exist
-    }
-}
-
-router.get('/products', product_samples );
-router.get('/products/:id', product_details );
 
 export default router;

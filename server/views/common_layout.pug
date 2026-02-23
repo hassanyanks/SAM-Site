@@ -1,0 +1,20 @@
+doctype html
+html
+  head
+    link(rel='stylesheet', type='text/css', href='/stylesheets/style.css')
+  body
+    div.root-container
+        div.top-grid
+            div
+            div(style="font-weight: bold; display:flex; align-items:center; font-size: 30px; text-align:center; margin-top: 30px; margin-bottom:30px;") 
+                a(href='/'): img(style="display:inline; margin-right:40px;", src="/images/home.png", alt="Home")
+                span Sam's Products and Services
+            div
+                button(style="margin-right: 40px;") Go to Cart
+                if user
+                    form(action="/logout" method="POST")
+                        button(type="submit") Log out
+                else 
+                button#login-button(style="margin-left: 40px;") Log in
+        block content
+    script(src="/eventListeners.mjs")

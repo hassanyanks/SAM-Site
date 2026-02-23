@@ -10,9 +10,6 @@ export const user_from_email = async(req, res, next) => {
 export const home = async(req, res, next) => {
     res.render('index', { user: req.user });
 }
-//export const logout = async(req, res, next) => {
-//    res.render('index', { user: null });
-//}
 
 export const login = async(req, res, next) => {
     res.render("login", { url: '/login' });

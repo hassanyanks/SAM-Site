@@ -1,6 +1,6 @@
-extends layout 
+extends common_layout 
 
-block content
+block append content
 
     section.login-container
         form(action=url method="post")
@@ -9,13 +9,4 @@ block content
                 input.text-input#password-fld(placeholder="Password" name="password" type="password" required autofocus)
                 span#togglePassword Show
             button.text-input(type="submit") Submit
-
-    script. 
-        var displayToggle = document.querySelector('span#togglePassword');
-        var pswd = document.querySelector('input.text-input#password-fld');
-        document.addEventListener('click', function() {
-        const type = pswd.getAttribute('type') === 'password' ? 'text' : 'password';
-        const text = displayToggle.innerText === 'Show' ? 'Hide' : 'Show';
-        pswd.setAttribute('type', type);
-        displayToggle.innerText = text;
-        });    
+    script(src="/eventListeners.mjs")
