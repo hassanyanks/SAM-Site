@@ -1,9 +1,0 @@
-mixin flashMessages(messages, type)
-  if messages && messages.length > 0
-    each msg in messages
-      div(class=`alert alert-${type}`)
-        span= msg
-
-//- Usage inside this file or another
-+flashMessages(error_msg, 'danger')
-+flashMessages(success_msg, 'success')

@@ -1,9 +1,9 @@
-extends index
+extends common_layout
 
 block append content
 
-    div.flex-wrap
-        div(style="width:50%; height=50%").product-sample
-            h1 #[strong #{product.name}]
-            img(style="margin:15px; width:40%;", src="/images/" + product.image)
-            h2 #[strong Price $#{product.price} + cost of shoes]
+    div.products-container
+        div.product-container.product-wide
+            h2 #[strong #{product.name}]
+            img(src="/images/" + product.image)
+            h2 #[strong $#{product.price}]

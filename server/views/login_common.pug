@@ -6,7 +6,8 @@ block append content
         form(action=url method="post")
             input.text-input(placeholder="Email" name="email" type="text" required autofocus)
             section.password-container
-                input.text-input#password-fld(placeholder="Password" name="password" type="password" required autofocus)
+                input.text-input#password-fld(placeholder="Password" name="password" type="password" required)
                 span#togglePassword Show
             button.text-input(type="submit") Submit
-    script(src="/eventListeners.mjs")
+        script(src="/togglePswdListener.mjs")
+

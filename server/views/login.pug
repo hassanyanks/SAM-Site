@@ -2,18 +2,16 @@ extends login_common
 
 block prepend content
 
-    h1(style="text-align:center; margin:10px; width:90%") Log in
+    h1.begin-section Log in
 
 block append content
 
-    section.login-container
-        span(style="padding: 2px") Forgot password? 
-
+    section.alt-login-container
+        hr
+        span Forgot password? 
         form(action="/forgot-password-email-send" method="post")
             input.text-input(placeholder="Email" name="email" type="text" required autofocus)
             button.text-input(type="submit") Reset
-
-        hr(style="background-color: #e6e6e6; ; opacity: 0.25")
-
+        hr
         span Don't have an account?
-        a(href="/signup", style="font-size: 20px;") Sign up
+        a(href="/signup") Sign up

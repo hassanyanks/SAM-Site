@@ -2,8 +2,8 @@ extends common_layout
 
 block content 
 
-    div(style="align-self:center;")
+    div.upload-div
         form(action="/upload" method="POST" enctype="multipart/form-data")
             input.upload-form-item(type="file" name="document" id="fileInput")
             button.upload-form-item(type="submit") Upload
-            button.upload-form-item(type="reset" style="color:black; background-color:white;") Cancel
+            button.upload-form-item.upload-cancel(type="reset") Cancel

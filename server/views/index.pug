@@ -5,17 +5,17 @@ block append content
         div.nav-container
           div.nav-subcontainer 
             span.item Shoes
-            a.item(href='/products?type=shoes'): img(src="/images/shoes.png", alt="Shoes", width='175', height='125')
-            a.item(href='/upload', style="font-size:20px") Upload your own design
+            a.item(href='/products?type=shoes'): img(src="/images/shoes.png", alt="Shoes")
+            a.item(href='/upload') Upload your own design
             if success_msg
               span.item.alert.alert-success= success_msg
             else if error_msg
-              span(style="color:red").item.alert.alert-danger= error_msg
+              span.item.flash-err.alert.alert-error= error_msg
           div.nav-subcontainer
             span.item Floral Arrangements 
-            a.item(href='/products?type=floral'): img(src="/images/floral_arrangements.png", alt="Floral", width='175', height='125', style="align-self:center")
+            a.item(href='/products?type=floral'): img(src="/images/floral_arrangements.png", alt="Floral")
           div.nav-subcontainer 
             span.item Events 
-            a.item(href='/products?type=events'): img(src="/images/events.png", alt="Events", width='175', height='125', style="align-self:center")
+            a.item(href='/products?type=events'): img(src="/images/events.png", alt="Events")
         hr
         block content
