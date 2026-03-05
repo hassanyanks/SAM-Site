@@ -7,15 +7,17 @@ html
     div.root-container
         div.top-grid
             div
-            div.top-grid-subdiv 
-                a(href='/'): img(src="/images/home.png", alt="Home")
+            div#top-grid-middle 
+                a(href='/index'): img(src="/images/home.png", alt="Home")
                 span Sam's Products and Services
-            div
-                button#cart-button Go to Cart
+            div#top-grid-buttons-container
+                form(action=`/cart` method="GET")
+                    button(type="submit") Go to cart
                 if user
                     form(action="/logout" method="POST")
                         button(type="submit") Log out
-                else 
-                button#login-button Log in
+                else
+                    form(action="/login" method="GET")
+                        button(type="submit") Log in
         block content
     script(src="/loginListener.mjs")

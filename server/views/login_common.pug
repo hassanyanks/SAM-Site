@@ -3,7 +3,8 @@ extends common_layout
 block append content
 
     section.login-container
-        form(action=url method="post")
+        //- url is either '/login' or '/signup'; template is shared
+        form(action=url method="post") 
             input.text-input(placeholder="Email" name="email" type="text" required autofocus)
             section.password-container
                 input.text-input#password-fld(placeholder="Password" name="password" type="password" required)

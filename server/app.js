@@ -12,9 +12,13 @@ import helmet from 'helmet';
 import authRouter from './routes/authRoutes.js';
 import productsRouter from './routes/productsRoutes.js';
 import uploadRouter from './routes/uploadRoutes.js';
-//import commonRouter from './routes/commonRoutes.js';
-import passportConfig from './config/passportConfig.js';
+import cartRouter from './routes/cartRoutes.js';
+import passportConfig from './init/passport.js';
 import { upload_form } from './controllers/commonControllers.js';
+import Cart from './models/cart.js';
+import { initMongoDB } from './init/mongodb.js';
+import { RedisClient } from './init/redis.js';
+import { startHttpsServer } from './init/httpsServer.js';
 
 dotenv.config({ path: './.env' }); 
 
@@ -34,29 +38,13 @@ const file_store = new FileStore(fileStoreOptions);
 const app = express();
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json());
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'images')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'lib')));
 app.use(express.static(path.join(__dirname, 'scripts')));
-
-app.use(session({
-  genid: (req) => {
-    return uuid() // use UUIDs for session IDs
-  },
-    store: file_store,
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-        httpOnly: true, // Prevents client-side JS from reading the cookie
-        maxAge: 1000 * 60 * 60 * 24 // Cookie expiration time (e.g., 1 day)
-    },
-},
-    console.log('exiting app.use(session())')
-));
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -68,6 +56,21 @@ app.use(helmet({
 }));
 
 app.use(flash());
+
+app.use(session({
+  genid: (req) => {
+    return uuid() // use UUIDs for session IDs
+  },
+    store: file_store,
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: true, //process.env.NODE_ENV === 'production', // Use secure cookies in production
+        httpOnly: true, // Prevents client-side JS from reading the cookie
+        maxAge: 1000 * 60 * 60 * 24 // Cookie expiration time (e.g., 1 day)
+    },
+},));
 
 const uploadsDir = path.join(__dirname, './uploads');
 
@@ -104,7 +107,32 @@ function checkFileType(req, file, cb) {
     }
 }
 
-app.get('/', (req, res ) => {
+app.use( async (req, res, next) => {
+    console.log('app.use session cart init...')
+    // If no cart in session, initialize it
+    const sessionId = req.sessionID ? req.sessionID : req.session.id;
+
+    if( !req.session.cart ) {
+        req.session.cart = await Cart.findOne({ sessionId });
+        if( !req.session.cart && req.user ) {
+            req.session.cart = await Cart.findOne({ userId: req.user._id });
+        }
+        if( !req.session.cart ) {
+            req.session.cart = {
+            items: [],
+            userId: null,
+            sessionId: sessionId
+            };
+        }
+        res.locals.cart = req.session.cart; // Make cart data available to all views (if using EJS/Pug)
+        console.log(`*****************************req.session.cart CREATED:  ${JSON.stringify(req.session.cart)}`)
+    }
+
+    next();
+
+});
+
+app.get('/index', (req, res ) => {
     res.render('index');
 });
 
@@ -177,10 +205,8 @@ app.post('/upload', (req, res) => {
     });
 });
 
-console.log('app.use passport start...');
 app.use(passport.initialize());
 app.use(passport.session()); // This uses the express-session middleware
-console.log('app.use passport end...');
 
 passportConfig(passport);
 
@@ -188,10 +214,28 @@ app.get('/login', (req, res) => {
     res.render('login');
 } );
 
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
 //app.set('view cache', false);
 app.use(authRouter);
 app.use(productsRouter);
 app.use(uploadRouter);
-console.log('app setup done...');
+app.use(cartRouter);
+
+const redisClient = new RedisClient();
+
+try {
+    const [mongoDbInstance, redisStatus] = await Promise.all([initMongoDB(), redisClient.startRedis()]);
+    console.log(`promise all result:  ${mongoDbInstance}, ${redisStatus}`)
+    if( mongoDbInstance === 'sams-db' && redisStatus === 'connected') {
+      startHttpsServer(app);
+    } else {
+      console.error(`Not starting HTTPS server: mongodb connection: ${mongoDbInstance}, Redis status: ${redisStatus}`);
+    }
+} catch (error) {
+    console.error('Failed to start HTTPS server:', error);
+}
 
 export default app;

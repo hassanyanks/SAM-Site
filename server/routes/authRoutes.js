@@ -4,10 +4,10 @@ import path from 'path';
 import passport from 'passport';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { home, login, signup } from '../controllers/authControllers.js';
-import { product_samples } from '../controllers/productsController.js';
-import { product_details } from '../controllers/productDetailController.js';
+import { signup } from '../controllers/authControllers.js';
 import { generateHashedToken, sendEmailWithToken, updateUserWithToken } from '../lib/credentials.js';
+import { home } from '../controllers/authControllers.js';
+import { mergeCarts } from '../controllers/cartControllers.js';
 
 const __dirname = import.meta.dirname
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -22,7 +22,7 @@ router.use(express.json());
 router.use((req, res, next) => {
     if( req.isAuthenticated() ) {
         res.locals.user = req.user; 
-        console.log(`*************************************router:  res.locals.user now is ${res.locals.user}*********************************************`)
+        //console.log(`*************************************router:  res.locals.user now is ${res.locals.user}*********************************************`)
     } else {
         res.locals.user = null;
     }
@@ -65,7 +65,7 @@ console.log('Inside deserializeUser callback')
 console.log(`The user id passport saved in the session file store is: ${id}`)
     const user = await User.findById(id).exec()
     .then((user, err) => {
-        console.log(`user found is ${user.id}`);
+        //console.log(`user found is ${user.id}`);
         if(err) { return done(err); }
         if(!user) { return done(null, false); }
         done(null, user);
@@ -75,7 +75,8 @@ console.log(`The user id passport saved in the session file store is: ${id}`)
 router.get('/signup', signup );
 
 router.post('/signup', async (req, res, next) => {
-    console.log('Inside POST /signup callback function');
+    const guestCart = req.session.cart;
+    console.log(`***********************************************in /signup POST, saved req session cart is ${JSON.stringify(guestCart)}...authenticating...`);
     try {
         if(!req.body.email.includes('@')) {
             return res.send('<h2>Seems you did not enter a valid email address.  Hit the back button and please try again.</h2>')
@@ -99,14 +100,17 @@ router.post('/signup', async (req, res, next) => {
         
         req.logIn(newUser, async function(err) {
             if (err) { return next(err); }
-            //res.locals.user, req.user = newUser;
-            console.log(`Authentication successful, current user is ${newUser}, redirecting to /products`);
-            return res.redirect(302, '/');
+            res.locals.userid, req.user = newUser;
+            req.session.userid = req.user._id;
+            req.session.cart = guestCart;
+            console.log(`***********************************************/signup Authentication successful, user is ${req.session.userid}, cart is now ${JSON.stringify(req.session.cart)}...redirecting`);
+            console.log(`Authentication successful, current user is ${newUser}, redirecting to /`);
+            return res.redirect(303, '/index');
             //return res.redirect('/products');
         });
 
     } catch (err) {
-        console.error(`Error registering user: ${err}`);
+        //console.error(`Error registering user: ${err}`);
         // If the error is a duplicate key (e.g., email already exists), send a specific error
         if (err.code === 11000) {
             return res.status(400).send( '<h2>Email already in use--try \'Forgot password?\' on login page.</h2>' );
@@ -116,31 +120,40 @@ router.post('/signup', async (req, res, next) => {
     }
 });
 
+router.get('/', home);
+
 router.post('/login', (req, res, next) => {
+    const guestCart = req.session.cart;
     console.log(`email ${req.body.email}, pswd ${req.body.password}`)
+    let resp = `<p>***********************************************in /login POST, saved req session cart is ${JSON.stringify(guestCart)}...authenticating...</p>`;
     console.log(`Inside POST /login callback`);
     if(!req.body.email.includes('@')) {
         return res.send('<h2>Seems you did not enter a valid email address.  Hit the back button and please try again.</h2>')
     }
     passport.authenticate('local', function(err, user, info) {
-        console.log("Inside authenticate callback");
+        //console.log("Inside authenticate callback");
         if (err) { return next(err); }
         if (!user) { 
             console.log("Authentication failed:", info.message); 
-            return res.status(401).send('<h2>Authentication seems to have failed.  Please click the browser back button and try again.</h2>');
+            return res.status(401).send('<h2>Authentication seems to have failed:  <u>maybe you do not have an account yet?</u>  Please click the browser back button and try again.</h2>');
         }
         //res.locals.user = req.user;
         req.logIn(user, function(err) {
             if (err) { return next(err); }
-            //req.user = user;
-            console.log(`/login Authentication successful, user is ${req.user}, redirecting`);
-            return res.redirect(302, '/');
+            req.user = user;
+            req.session.userid = req.user._id;
+            req.session.cart = guestCart;
+            resp += `<p>***********************************************/login Authentication successful, user is ${req.session.userid}, cart is now ${JSON.stringify(req.session.cart)}...redirecting</p>`;
+            return res.send(resp);
+
+            //mergeCarts();
+            //return res.redirect(303, '/' );
         });
     })(req, res, next); // Crucial: You must call the returned function
 });
 
 router.post('/forgot-password-email-send', async (req, res) => {
-    console.log(`in /forgot-password-email-send POST, user email is ${JSON.stringify(req.body)}`);
+    //console.log(`in /forgot-password-email-send POST, user email is ${JSON.stringify(req.body)}`);
     try {
         if(!req.body.email.includes('@')) {
             return res.send('<h2>Seems you did not enter a valid email address.  Hit the back button and please try again.</h2>')

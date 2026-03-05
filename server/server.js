@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import path from 'path';
 import app from './app.js'
-import { initMongoDB } from './config/mongodbConfig.js';
+import { initMongoDB } from './init/mongodb.js';
+import { RedisClient } from './init/redis.js';
 
 const PORT = 443;
 const __dirname = import.meta.dirname;
@@ -29,6 +30,16 @@ async function startHttpsServer() {
   }
 }
 
-initMongoDB();
-startHttpsServer();
+export const redisClient = new RedisClient();
 
+try {
+    const [mongoDbInstance, redisStatus] = await Promise.all([initMongoDB(), redisClient.startRedis()]);
+    console.log(`promise all result:  ${mongoDbInstance}, ${redisStatus}`)
+    if( mongoDbInstance === 'sams-db' && redisStatus === 'connected') {
+      startHttpsServer();
+    } else {
+      console.error(`Not starting HTTPS server: mongodb connection: ${mongoDbInstance}, Redis status: ${redisStatus}`);
+    }
+} catch (error) {
+    console.error('Failed to start HTTPS server:', error);
+}

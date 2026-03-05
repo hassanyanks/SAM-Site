@@ -1,0 +1,27 @@
+extends index 
+
+block append content
+
+        if products.length
+            div#cart-container
+                div#cart-contents
+                    div#cart-header My Cart (#{products.length})
+                    if products && products.length > 0
+                        each product in products
+                            div.cart-item 
+                                img.cart-item-image(src="/images/" + product.image)
+                                //-div.add-to-cart-container
+                                    //-div.add-to-cart-quantity-container 
+                                div.cart-quantity-form
+                                    h2 #{product.name}
+                                    input(type="number", value=product.quantity, min="1", name="quantity").cart-current-quantity#modify-quantity-input
+                                    button.update-qty-btn#cart-update-quantity-btn(data-product-id=product.id) Update
+                                    button.update-qty-btn#cart-remove-item-btn(type="submit") Remove
+                                    //-input(type="hidden", name="productId", value=item.product)
+                                    h3 #[strong $#{product.price * product.quantity}]
+                            hr.cart-item-hr
+                    else 
+                        h2 No items in your cart
+                div#cart-summary 
+                    div#cart-header Cart Summary | #{products.length} item(s)
+        script(src="/cartHelpers.mjs")

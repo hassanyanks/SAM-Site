@@ -26,7 +26,7 @@ export function sendEmailWithToken(user) {
   const TEST_INBOX_ID = process.env.MAILTRAP_INBOX_ID;
   const SENDER_EMAIL = "support@gmail.com";
   const RECIPIENT_EMAIL = user.email;
-  const resetUrl = `https://localhost:3000/pswd-reset-usermatch/?token=${user.resetPasswordToken}`;
+  const resetUrl = `https://localhost:443/pswd-reset-usermatch/?token=${user.resetPasswordToken}`;
 
   const client = new MailtrapClient({ token: TOKEN, sandbox: true, testInboxId: TEST_INBOX_ID });
 

@@ -2,15 +2,17 @@
 //import mongoose from 'mongoose';
 import {MongoClient} from 'mongodb';
 import ProductType from '../server/models/producttype.js';
-import ProductSample from '../server/models/productsample.js';
+import Product from '../server/models/product.js';
 import User from '../server/models/user.js';
+import Cart from '../server/models/cart.js';
 
 const productTypes = [];
-const productSamples = [];
+const products = [];
 const users = [];
 
 console.log(`user ${process.env.MONGODB_GLOBAL_USER}, pswd ${process.env.MONGODB_GLOBAL_PSWD}`)
-const mongoDB = `mongodb+srv://${process.env.MONGODB_GLOBAL_USER}:${process.env.MONGODB_GLOBAL_PSWD}@cluster0.htvwoee.mongodb.net/sams-shoes?retryWrites=true&w=majority&appName=Cluster0`;
+const mongoDB = `mongodb+srv://${process.env.MONGODB_GLOBAL_USER}:${process.env.MONGODB_GLOBAL_PSWD}${process.env.SAMS_MONGODB_STR}`;
+console.log(`mongodb url:  ${mongoDB}`)
 main().catch((err) => console.log(err));
 
 async function main() {
@@ -18,19 +20,43 @@ async function main() {
     await client.connect(mongoDB);
     console.log("Debug: Should be connected?");
     console.log("hydrating DB...");
-    const db = client.db('sams-shoes');
+    const db = client.db('sams-db');
     const typesCollection = db.collection('producttypes');
-    const samplesCollection = db.collection('productsamples');
+    const productsCollection = db.collection('products');
     const usersCollection = db.collection('users');
+    const cartsCollection = db.collection('carts');
     await createProductTypes( typesCollection);
-    await createProductSamples(samplesCollection);
+    await createProducts(productsCollection);
     await createUsers(usersCollection);
+    await createCarts(cartsCollection);
     console.log("Debug: Closing mongoose");
-    console.log(`product types array is ${productTypes.toString()}`)
-    console.log(`product samples array is ${productSamples.toString()}`)
     client.close();
 }
 
+async function createCarts(collection) {
+    const userObj = {
+        email: 'fakeUser@gmail.com',
+    };
+    const user = new User(userObj);
+  console.log(`Adding carts using user: ${userObj}`);
+  await Promise.all([
+    cartCreate(collection, null, null, [{}]),
+  ]);
+}
+
+async function cartCreate( collection, userId, sessionId, items ) {
+    const updatedCart = await collection.findOneAndUpdate(
+        {userId, sessionId, items},
+        { $setOnInsert: 
+            {
+                userId,
+                sessionId,
+                items,
+            }
+         },
+        { upsert: true, returnNewDocument: true }
+    );
+}
 async function createProductTypes(collection) {
   console.log("Adding product types");
   await Promise.all([
@@ -38,6 +64,7 @@ async function createProductTypes(collection) {
     productTypeCreate(collection, 1, "floral"),
     productTypeCreate(collection, 2, "events"),
   ]);
+    console.log(`product types array is ${productTypes.toString()}`)
 }
 
 async function productTypeCreate(collection, index, name) {
@@ -51,7 +78,7 @@ async function productTypeCreate(collection, index, name) {
   productTypes[index] = updatedType;
 }
 
-const sampleImages = [
+const productImages = [
     'salvadore_dali_0.jpg',
     'salvadore_dali_1.jpg',
     'sea_creatures.jpg',
@@ -64,102 +91,103 @@ const sampleImages = [
     'wedding_table.png',
 ];
 
-async function createProductSamples(collection) {
-    console.log('adding product samples');
+async function createProducts(collection) {
+    console.log('adding products');
     await Promise.all([
-        productSampleCreate(
+        productCreate(
             collection,
             0,
             50.00,
             'Salvadore Dali',
             productTypes[0],
-            sampleImages[0]
+            productImages[0]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             1,
             50.00,
             'Salvadore Dali',
             productTypes[0],
-            sampleImages[1]
+            productImages[1]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             2,
             65.00,
             'Sea Creatures',
             productTypes[0],
-            sampleImages[2]
+            productImages[2]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             3,
             25.00,
             'Stars and Stripes',
             productTypes[0],
-            sampleImages[3]
+            productImages[3]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             4,
             75.00,
             'Toy Story',
             productTypes[0],
-            sampleImages[4]
+            productImages[4]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             5,
             75.00,
             'Wedding Place Setting',
             productTypes[1],
-            sampleImages[5]
+            productImages[5]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             6,
             75.00,
             'Bouquet on Stand',
             productTypes[1],
-            sampleImages[6]
+            productImages[6]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             7,
             75.00,
             'Weddings',
             productTypes[2],
-            sampleImages[7]
+            productImages[7]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             8,
             75.00,
             'Birthday Parties',
             productTypes[2],
-            sampleImages[8]
+            productImages[8]
         ),
-        productSampleCreate(
+        productCreate(
             collection,
             9,
             75.00,
             'Wedding Table Floral',
             productTypes[1],
-            sampleImages[9]
+            productImages[9]
         )
     ]);
+    console.log(`products array is ${products.toString()}`)
 }
 
-async function productSampleCreate( collection, index, price, prodName, prodType, prodImage ) {
-    const sampleObj = {
+async function productCreate( collection, index, price, prodName, prodType, prodImage ) {
+    const productObj = {
         id: index,
         price: price,
         name: prodName,
         type: prodType._id,
         image: prodImage
     };
-    const sample = new ProductSample(sampleObj);
-    const updatedSample = await collection.updateOne(
+    const product = new Product(productObj);
+    const updatedProduct = await collection.findOneAndUpdate(
         {id: index},
         { $setOnInsert: 
             {
@@ -171,8 +199,8 @@ async function productSampleCreate( collection, index, price, prodName, prodType
          },
         { upsert: true, returnNewDocument: true }
     );
-    console.log(`***************sample ${updatedSample.name} created/updated using product type ${updatedSample.type}//${prodType._id}**********************`)
-    productSamples[index] = updatedSample;
+    //console.log(`***************sample ${updatedProduct.name} created/updated using product type ${updatedProduct.type}//${prodType._id}**********************`)
+    products[index] = updatedProduct;
 }
 
 
