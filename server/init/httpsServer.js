@@ -1,16 +1,16 @@
 #!/usr/bin/env node
+import app from '../app.js'
 import { readFileSync } from 'node:fs';
 import path from 'path';
 
 const PORT = 443;
-const __dirname = import.meta.dirname;
-console.log(`*****************__dirname is ${__dirname}`);
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
 });
 
-export async function startHttpsServer(app) {
+export async function startHttpsServer() {
   try {
+    const __dirname = import.meta.dirname;
     const options = {
       key: readFileSync(path.join(__dirname, '../samsKey.key')),
       cert: readFileSync(path.join(__dirname, '../samsCertificate.crt')),

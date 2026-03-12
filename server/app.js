@@ -1,21 +1,23 @@
 import express from 'express';
 import { v4 as uuid } from 'uuid';
 import session from 'express-session';
-import FileStoreFactory from 'session-file-store';
+//import FileStoreFactory from 'session-file-store';
 import path from 'path';
 import url from 'url';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import flash from 'connect-flash';
-import multer from 'multer';
 import helmet from 'helmet';
+import { RedisStore } from 'connect-redis';
 import authRouter from './routes/authRoutes.js';
 import productsRouter from './routes/productsRoutes.js';
 import uploadRouter from './routes/uploadRoutes.js';
 import cartRouter from './routes/cartRoutes.js';
 import passportConfig from './init/passport.js';
-import { upload_form } from './controllers/commonControllers.js';
+import bcrypt from 'bcrypt';
+///import { upload_form } from './controllers/commonControllers.js';
 import Cart from './models/cart.js';
+import User from './models/user.js';
 import { initMongoDB } from './init/mongodb.js';
 import { RedisClient } from './init/redis.js';
 import { startHttpsServer } from './init/httpsServer.js';
@@ -24,16 +26,6 @@ dotenv.config({ path: './.env' });
 
 const __dirname = import.meta.dirname
 const sessionDir = path.join(__dirname, 'sessions');
-
-const FileStore = FileStoreFactory(session);
-const fileStoreOptions = {
-    path: sessionDir,
-    ttl: 3600,
-    fileExtension: '.json',
-    reapInterval: 300,
-    lifetime: 2400
-};
-const file_store = new FileStore(fileStoreOptions);
 
 const app = express();
 app.use(express.urlencoded({ extended: false }))
@@ -55,13 +47,25 @@ app.use(helmet({
   },
 }));
 
-app.use(flash());
+export const redisClient = new RedisClient();
+
+try {
+    const [mongoDbInstance, redisStatus] = await Promise.all([initMongoDB(), redisClient.startRedis()]);
+    console.log(`promise all result:  ${mongoDbInstance}, ${redisStatus}`)
+    if( mongoDbInstance === 'sams-db' && redisStatus === 'connected') {
+      startHttpsServer();
+    } else {
+      console.error(`Not starting HTTPS server: mongodb connection: ${mongoDbInstance}, Redis status: ${redisStatus}`);
+    }
+} catch (error) {
+    console.error('Failed to start HTTPS server:', error);
+}
 
 app.use(session({
   genid: (req) => {
     return uuid() // use UUIDs for session IDs
   },
-    store: file_store,
+    store: new RedisStore({ client: redisClient.client }),
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
@@ -72,170 +76,31 @@ app.use(session({
     },
 },));
 
-const uploadsDir = path.join(__dirname, './uploads');
-
-// Configure Multer storage
-const storage = multer.diskStorage({
-    destination: uploadsDir,
-    filename: function(req, file, cb) {
-        cb(null, file.originalname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-// Init upload
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 1000000 }, // Limit file size to 1MB
-    fileFilter: function(req, file, cb) {
-        checkFileType(req, file, cb);
-    }
-}).single('document'); // 'document' is the field name in the form
-
-// Check File Type
-function checkFileType(req, file, cb) {
-    // Allowed ext
-    const filetypes = /jpeg|jpg|png|gif/;
-    // Check ext
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    // Check mime
-    const mimetype = filetypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-        return cb(null, true);
-    } else {
-        cb('Error: Images Only!');
-    }
-}
-
-app.use( async (req, res, next) => {
-    console.log('app.use session cart init...')
-    // If no cart in session, initialize it
-    const sessionId = req.sessionID ? req.sessionID : req.session.id;
-
-    if( !req.session.cart ) {
-        req.session.cart = await Cart.findOne({ sessionId });
-        if( !req.session.cart && req.user ) {
-            req.session.cart = await Cart.findOne({ userId: req.user._id });
-        }
-        if( !req.session.cart ) {
-            req.session.cart = {
-            items: [],
-            userId: null,
-            sessionId: sessionId
-            };
-        }
-        res.locals.cart = req.session.cart; // Make cart data available to all views (if using EJS/Pug)
-        console.log(`*****************************req.session.cart CREATED:  ${JSON.stringify(req.session.cart)}`)
-    }
-
-    next();
-
-});
-
-app.get('/index', (req, res ) => {
-    res.render('index');
-});
+//app.set('view cache', false);
+console.log('initializing routers...');
+app.use(uploadRouter);
+app.use(authRouter);
+app.use(productsRouter);
+app.use(cartRouter);
 
 /*
-  const host = req.headers.host; // e.g., 'localhost:8080'
-  const pathname = url.parse(req.url).pathname; // e.g., '/MyApp'
-  const fullUrl = `https://${host}${pathname}`;
-  
-  console.log(fullUrl);
-
-    //const targetUrl = req.query.url || 'https://default.com';
-    console.log(`**************************current url:  ${fullUrl}`)
-    // Serve an HTML string or a view template
-    res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Redirecting...</title>
-            <!-- Option A: Meta refresh as a fallback (3 seconds) -->
-            <meta http-equiv="Content-Security-Policy; refresh" content="form-action 'self';script-src 'self' 'unsafe-inline'; connect-src 'self';url=${req.query.targetUrl};">
-            <style>
-                body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-                .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; 
-                          border-radius: 50%; width: 50px; height: 50px; 
-                          animation: spin 2s linear infinite; margin: auto; }
-                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            </style>
-        </head>
-        <body>
-            <div class="loader"></div>
-            <h1>Please wait while we redirect you...</h1>
-            <p>If you are not redirected within 3 seconds, <a href="${req.query.targetUrl}">click here</a>.</p>
-            
-            <script type="text/javascript"; src="./server/redirectTimeout.js">
-                // Option B: Immediate JavaScript redirect for better UX
-            </script>
-        </body>
-        </html>
-    `);
+app.use((req, res, next) => {
+    if( req.isAuthenticated() ) {
+        res.locals.user, req.user = req.session.passport.user; 
+        console.log(`*************************************req.isAuthenticated():  res.locals.user now is ${JSON.stringify(req.session.passport.user)}*********************************************`)
+    } else {
+        res.locals.user = null;
+    }
+  next();
 });
 */
 
-app.get('/upload', upload_form);
-
-app.get('/uploaded', (req, res) => {
-    const error_msg = req.flash('error');
-    const success_msg = req.flash('success');
-    res.render('index', {success_msg: success_msg.toString().trim(), error_msg: error_msg.toString().trim()});
-} );
-
-app.post('/upload', (req, res) => {
-    req.flash('success');
-    req.flash('error');
-
-    upload(req, res, function(err) {
-        if(err) {
-            req.flash('error', err);
-        }
-        else if (!req.file) {
-            req.flash('error', 'Error: No File Selected!');
-        } else {
-            req.flash('success', 'File Uploaded Successfully!');
-        }
-        req.session.save(err => { // This to persist flash msgs
-            if (err) {
-            return next(err); // Handle errors
-            }
-            res.redirect(303, '/uploaded'); // Redirect in the callback
-        });
-    });
-});
-
-app.use(passport.initialize());
-app.use(passport.session()); // This uses the express-session middleware
-
-passportConfig(passport);
-
-app.get('/login', (req, res) => {
-    res.render('login');
-} );
-
 app.get('/', (req, res) => {
-    res.render('index');
+    res.render('index', { user: req.user });
 });
 
-//app.set('view cache', false);
-app.use(authRouter);
-app.use(productsRouter);
-app.use(uploadRouter);
-app.use(cartRouter);
-
-const redisClient = new RedisClient();
-
-try {
-    const [mongoDbInstance, redisStatus] = await Promise.all([initMongoDB(), redisClient.startRedis()]);
-    console.log(`promise all result:  ${mongoDbInstance}, ${redisStatus}`)
-    if( mongoDbInstance === 'sams-db' && redisStatus === 'connected') {
-      startHttpsServer(app);
-    } else {
-      console.error(`Not starting HTTPS server: mongodb connection: ${mongoDbInstance}, Redis status: ${redisStatus}`);
-    }
-} catch (error) {
-    console.error('Failed to start HTTPS server:', error);
-}
+app.get('/index', (req, res ) => {
+    res.render('index', { user: req.user });
+});
 
 export default app;

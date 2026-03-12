@@ -494,7 +494,10 @@ section span {
 }
 
 .upload-div {
-  align-self:center;  
+  display:flex;
+  align-self:center;
+  justify-content:center; 
+  justify-items: center; 
 }
 
 .upload-form-item {

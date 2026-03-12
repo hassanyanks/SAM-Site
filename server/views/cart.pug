@@ -15,7 +15,7 @@ block append content
                                 div.cart-quantity-form
                                     h2 #{product.name}
                                     input(type="number", value=product.quantity, min="1", name="quantity").cart-current-quantity#modify-quantity-input
-                                    button.update-qty-btn#cart-update-quantity-btn(data-product-id=product.id) Update
+                                    button.update-qty-btn#cart-update-quantity-btn(data-product-id=product._id) Update
                                     button.update-qty-btn#cart-remove-item-btn(type="submit") Remove
                                     //-input(type="hidden", name="productId", value=item.product)
                                     h3 #[strong $#{product.price * product.quantity}]

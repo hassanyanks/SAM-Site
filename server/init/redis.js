@@ -20,9 +20,9 @@ export class RedisClient {
   }
 
   async test() {
-    await this.client.set('id', '2');
-    const result = await this.client.get('id');
-    console.log(`redis test returns: ${JSON.stringify(result)}`);
+        await this.client.set('id', '2');
+        const result = await this.client.get('id');
+        console.log(`redis test returns: ${JSON.stringify(result)}`);
   }
 
   async startRedis() {

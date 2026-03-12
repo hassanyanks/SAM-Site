@@ -7,7 +7,7 @@ block append content
             div.product-container.product-narrow
               h2 #{product.name}
               img(src="/images/" + product.image)
-              form.product-item(action=`/products/${product.id}`, method='GET', target="_blank")
-                button.product-item(value=product.id) View details
+              form.product-item(action=`/products/${product._id}`, method='GET', target="_blank")
+                button.product-item(value=product._id) View details
       else 
         h2 Nothing to see here yet--soon to come!!

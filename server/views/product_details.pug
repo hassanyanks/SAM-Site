@@ -9,7 +9,7 @@ block append content
             h2 #[strong $#{product.price}]
             div.add-to-cart-container
                 //-div.add-to-cart-quantity-container 
-                form.cart-quantity-form(action=`/cart/add`, method='POST')
+                form.cart-quantity-form(action=`/add-to-cart`, method='POST')
                     input(type="number", value="1", min="1", name="quantity").cart-current-quantity
                     button#add-to-cart-button(type="submit") Add to cart
-                    input(type="hidden", name="id", value=product.id)
+                    input(type="hidden", name="_id", value=product._id)

@@ -1,51 +1,27 @@
 import User from "../models/user.js";
 import Cart from "../models/cart.js";
-import Product from "../models/product.js";
+import { redisClient } from "../app.js";
+import { ShoppingCart } from "../lib/redisShoppingCart.js";
 
 export const cart_details = async(req, res, next) => {
-    var cartItems = [];
-
     try {
-        //const cart = await Cart.findOne({ $or: [{ userId }, { sessionId }] });
-        //if(!cart) {
-        //    return res.status(404).send('We could not find a cart for you!!!');           
-        //}
-
-        for(const item of req.session.cart.items) {
-             const product = await Product.findOne({ _id: item.product_id });
-            //const newItemForCart = { product_name: product.name, product_id: product._id, quantity, priceAtTimeOfAddition: product.price };
-            if(product) {
-                const cartPageItemDetails = {
-                    name: product.name,
-                    id: item.product_id,
-                    quantity: item.quantity,
-                    image: product.image,
-                    price: item.priceAtTimeOfAddition,
-                }
-                console.log(`*********************in cart_details:  item details to show ${JSON.stringify(cartPageItemDetails)}`);
-                cartItems.push(cartPageItemDetails);
-            }
-       };
-
+        const userId = req.session.passport ? req.user._id : req.session.id;
+        const cart = new ShoppingCart(userId, redisClient.client);
+        console.log(`*************************************in cart_details....calling cart.getAllItems(), cart key ${cart.cartKey}`);
+        cart.renderItemsOnCartPage(req, res);
     } catch(err) {
         err.status = 500;
         console.error(`Server error:  ${err}`)
     }
-    //res.send(cartItems);
-    res.render('cart', { products: cartItems });
 };
 
-export async function mergeCarts( guestCart, loggedInUserId ) { 
-    //(loggedInUserId, guestCart) {
+    // use case 3: user has no guest cart but has user cart
+    // use case 4: user has both a guest cart and a user cart
 
-    if( guestCart.items.length === 0 ) {
-        console.log( 'no guest cart so merging of carts not required.');
-        return 1;
+    /*
+    if( guestCart ) {
     }
-    const userCart = new Cart({
-        sessionId: null,
-        userId: loggedInUserId,
-    });
+
 
     const savedCart = null; //await userCart.save();
     console.log(`***********************inside mergeCarts()....user cart created is ${JSON.stringify(savedCart)}`)
@@ -89,5 +65,4 @@ export async function mergeCarts( guestCart, loggedInUserId ) {
   await Cart.deleteOne({ _id: guestCart._id });
   
   return userCart;
-
-};
+*/

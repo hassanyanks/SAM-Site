@@ -10,13 +10,9 @@ const CartSchema = new Schema({
   sessionId: { type: String, nullable: true }, // Unique ID from guest cookie
   items: [
     {
-      product_id: {
+      _id: {
         type: Schema.Types.ObjectId,
         ref: Product, // Reference to the Product model
-        required: true,
-      },
-      product_name: {
-        type: String,
         required: true,
       },
       quantity: {

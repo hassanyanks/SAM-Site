@@ -4,6 +4,8 @@ import express from 'express';
 import Product from "../models/product.js";
 import Cart from '../models/cart.js';
 import { cart_details } from '../controllers/cartControllers.js';
+import { redisClient } from '../app.js';
+import { ShoppingCart } from '../lib/redisShoppingCart.js';
 
 var router = express.Router();
 router.use(express.urlencoded({ extended: true }));
@@ -31,18 +33,27 @@ router.put('/api/cart/update', async (req, res, next) => {
 
 router.get('/cart', cart_details);
 
-router.post('/cart/add', async (req, res) => {
+router.post('/add-to-cart', async (req, res) => {
     try {
-
-        const productId = req.body.id;
+        const productId = req.body._id;
         const quantity = req.body.quantity;
-        const sessionId = req.sessionID ? req.sessionID : req.session.id;
+        const userId = req.session.passport ? req.user._id : req.session.id;
+        const cart = new ShoppingCart(userId, redisClient.client);
+        const result = await cart.addItem(productId, quantity);
+        //return res.send( statresult[0] );
+        return res.redirect(`/cart`);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send(`server error:  ${err}`)
+    }
+});
+        //const sessionId = req.sessionID ? req.sessionID : req.session.id;
 
-        const product = await Product.findOne({ id: productId });
-        if(!product) {
-            return res.status(404).send('Product not found!!!')
-        }
-
+        //const product = await Product.findOne({ id: productId });
+        //if(!product) {
+        //    return res.status(404).send('Product not found!!!')
+        //}
+/*
         let resp = `<p>************************in /cart/add POST.....adding to cart: ${JSON.stringify(req.session.cart)}**********************************...</p>`;
 
         if( req.session.cart.items.length > 0 ) {
@@ -59,12 +70,15 @@ router.post('/cart/add', async (req, res) => {
         } else {
             await Cart.updateOne( { sessionId }, { $set: { cart: req.session.cart } } );
         }
+*/
+        //req.session.save((err) => {
+        //    if(err) console.error(`encountered session save error: ${err}`)
+        //});
 
-        resp += `<p>************************in /cart/add POST.....cart updated: ${JSON.stringify(req.session.cart)}**********************************...</p>`;
+        //const resp = `<p>************************in /add-to-cart POST.....cart items: ${JSON.stringify(req.session.cart.items)}, session id:  '${req.session.id}'**********************************...</p>`;
 
         //req.session.cartItems = newCart.items;
-        res.send(resp);
-        //return res.redirect(`/cart`);
+        //res.send(resp);
 
 
 
@@ -87,28 +101,7 @@ router.post('/cart/add', async (req, res) => {
             
         }
 */
-    } catch(err) {
-        console.error(err);
-        res.status(500).send(`server error:  ${err}`)
-    }
 
-/*
-    if (!req.session.cart) {
-        req.session.cart = []; // Initialize cart if it doesn't exist
-    }
-
-    const cartItemIndex = req.session.cart.findIndex(item => item.productId === productId);
-
-    if (cartItemIndex > -1) {
-        req.session.cart[cartItemIndex].quantity += quantity;
-    } else {
-        req.session.cart.push({ productId, quantity });
-    }
-
-    res.status(200).json({ message: 'Item added to cart', cart: req.session.cart });
-*/
-
-});
 
 export default router;
 

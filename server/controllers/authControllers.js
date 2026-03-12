@@ -36,7 +36,7 @@ export const home = async(req, res, next) => {
 
 
 
-    res.render('index');
+    res.render('index', { user: req.user });
 }
 
 export const login = async(req, res, next) => {
